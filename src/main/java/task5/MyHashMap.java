@@ -32,8 +32,18 @@ public class MyHashMap<K, V> {
     }
 
     public void put(K key, V value) {
-        int index = hash((K) key);
-        Node<K, V> newNode = new Node<K, V>(key, value);
+        if (key == null) {
+            if (nullKeyNode == null) {
+                nullKeyNode = new Node<>(null, value);
+                size ++;
+            } else {
+                nullKeyNode.value = value;
+            }
+            return;
+        }
+
+        int index = hash(key);
+        Node<K, V> newNode = new Node<>(key, value);
 
         Node<K, V> current = table[index];
         while (current != null) {
@@ -42,18 +52,34 @@ public class MyHashMap<K, V> {
                 return;
             }
             current = current.next;
+
         }
 
-        newNode.next = table[index];
-        table[index] = newNode;
-        size++;
+        if (current == null) {
+            if (table[index] == null) {
+                table[index] = newNode;
+
+            } else {
+                newNode.next = table[index];
+                table[index] = newNode;
+            } size ++;
+        }
 
         if (size > table.length * 0.75) {
             resizeTable();
         }
     }
 
+    private Node<K, V> nullKeyNode;
+
     public Object get(K key) {
+        if (key == null) {
+            if (nullKeyNode != null) {
+                return nullKeyNode.value;
+            }
+            return null;
+        }
+
         int index = hash(key);
         Node<K, V> current = table[index];
         while (current != null) {
@@ -66,6 +92,12 @@ public class MyHashMap<K, V> {
     }
 
     public void remove(K key) {
+        if (key == null) {
+            if (nullKeyNode != null) {
+                nullKeyNode = null;
+                size --;
+            } return;
+        }
         int index = hash(key);
         Node<K, V> prev = null;
         Node<K, V> current = table[index];
@@ -106,22 +138,5 @@ public class MyHashMap<K, V> {
             }
         }
         table = newTable;
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder stringBuilder = new StringBuilder();
-        for (int i = 0; i < table.length; i++) {
-            Node<K, V> currentNode = table[i];
-            while (currentNode != null) {
-                stringBuilder.append(currentNode.key).append(" = ").append(currentNode.value);
-                if (i < table.length - 1) {
-                    stringBuilder.append(", ");
-                }
-                currentNode = currentNode.next;
-            }
-
-        }
-        return stringBuilder.toString();
     }
 }
